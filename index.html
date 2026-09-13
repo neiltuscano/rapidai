@@ -1600,7 +1600,7 @@ footer {
   <section class="divisions">
     <div class="section-eyebrow">Three Divisions</div>
     <h2 class="section-title">One firm. Every angle covered.</h2>
-    <p class="section-sub">A no-failure structure — three complementary divisions that generate revenue under any market condition.</p>
+    <p class="section-sub">Implementation, innovation, and education — one integrated team at every stage of your AI journey.</p>
 
     <div class="division-grid">
 
@@ -2375,29 +2375,29 @@ footer {
         </div>
       </div>
 
-      <div class="contact-form">
+<div class="contact-form" id="contact-form-wrap">
         <div class="form-title">Send a message</div>
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">First Name</label>
-            <input class="form-input" type="text" placeholder="Jane">
+            <input class="form-input" id="contact-fname" type="text" placeholder="Jane">
           </div>
           <div class="form-group">
             <label class="form-label">Last Name</label>
-            <input class="form-input" type="text" placeholder="Smith">
+            <input class="form-input" id="contact-lname" type="text" placeholder="Smith">
           </div>
         </div>
         <div class="form-group">
           <label class="form-label">Business Email</label>
-          <input class="form-input" type="email" placeholder="jane@yourbusiness.com">
+          <input class="form-input" id="contact-email" type="email" placeholder="jane@yourbusiness.com">
         </div>
         <div class="form-group">
           <label class="form-label">Business Name</label>
-          <input class="form-input" type="text" placeholder="Smith & Co.">
+          <input class="form-input" id="contact-business" type="text" placeholder="Smith & Co.">
         </div>
         <div class="form-group">
           <label class="form-label">What can we help with?</label>
-          <select class="form-select">
+          <select class="form-select" id="contact-topic">
             <option value="">Select an area...</option>
             <option>AI Services — Managed solutions</option>
             <option>AI Products — Innovation & product delivery</option>
@@ -2414,9 +2414,14 @@ footer {
         </div>
         <div class="form-group">
           <label class="form-label">Tell us about your business</label>
-          <textarea class="form-textarea" placeholder="What does your business do, and where do you feel most bottlenecked?"></textarea>
+          <textarea class="form-textarea" id="contact-message" placeholder="What does your business do, and where do you feel most bottlenecked?"></textarea>
         </div>
-        <button class="form-submit">Send Message</button>
+        <button class="form-submit" id="contact-submit-btn" onclick="submitContactForm()">Send Message</button>
+      </div>
+      <div id="contact-form-success" style="display:none; text-align:center; padding:40px 24px;">
+        <div style="font-size:48px; margin-bottom:16px;">✅</div>
+        <div style="font-size:20px; font-weight:600; color:var(--text); margin-bottom:8px;">Message sent!</div>
+        <p style="color:var(--text-2);">Thanks for reaching out. We’ll be in touch within 1 business day.</p>
       </div>
     </div>
   </section>
@@ -2757,4 +2762,43 @@ function submitEnrollForm(e) {
   });
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+    async function submitContactForm() {
+      const btn = document.getElementById('contact-submit-btn');
+      const firstName = (document.getElementById('contact-fname').value||'').trim();
+      const lastName = (document.getElementById('contact-lname').value||'').trim();
+      const email = (document.getElementById('contact-email').value||'').trim();
+      const business = (document.getElementById('contact-business').value||'').trim();
+      const topic = document.getElementById('contact-topic').value;
+      const msg = (document.getElementById('contact-message').value||'').trim();
+      if (!firstName || !email || !topic || !msg) {
+        alert('Please fill in your name, email, topic, and message.');
+        return;
+      }
+      btn.textContent = 'Sending…';
+      btn.disabled = true;
+      try {
+        const res = await fetch('https://formsubmit.co/ajax/neiltuscano2@gmail.com', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({
+            name: firstName + ' ' + lastName,
+            email: email,
+            business: business,
+            topic: topic,
+            message: msg,
+            _subject: 'New inquiry — ' + firstName + ' ' + lastName + ' · RapidAI'
+          })
+        });
+        const data = await res.json();
+        if (data.success === 'true' || data.success === true) {
+          document.getElementById('contact-form-wrap').style.display = 'none';
+          document.getElementById('contact-form-success').style.display = 'block';
+        } else { throw new Error('send failed'); }
+      } catch(err) {
+        btn.textContent = 'Send Message';
+        btn.disabled = false;
+        alert('Something went wrong. Please try again or email neil.tuscano@rapidaitechnologies.com');
+      }
+    }
 </script>
