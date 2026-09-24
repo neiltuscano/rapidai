@@ -807,29 +807,25 @@
   const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
   // ─── AUTH STATE ──────────────────────────────────────────────────
-  async function checkAuth() {
-    // Parse URL hash — Supabase puts tokens here after email link click
-    const hash = window.location.hash;
-    const params = new URLSearchParams(hash.replace('#', ''));
-    const type = params.get('type');
-
-    // Invite link or password reset link clicked
-    if (type === 'invite' || type === 'recovery') {
-      // Supabase v2 auto-processes the hash and creates a session
-      // We just need to show the set-password UI
+  // Listen for Supabase to process the recovery/invite token from the URL hash.
+  // We must NOT clear the hash before Supabase reads it — that's why we use
+  // onAuthStateChange instead of manually parsing window.location.hash.
+  db.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      // Token processed — now safe to show set-password UI and clean the URL
       document.getElementById('login-gate').classList.add('hidden');
       document.getElementById('set-password-gate').classList.remove('hidden');
-      // Clear the hash from the URL bar (cleaner UX)
       window.history.replaceState(null, '', window.location.pathname);
-      return;
     }
+  });
 
+  async function checkAuth() {
     // Normal page load — check if already logged in
     const { data: { user } } = await db.auth.getUser();
     if (user) {
       showPortal(user.email);
     }
-    // Otherwise login gate stays visible
+    // Recovery/invite flows are handled by onAuthStateChange above
   }
 
   function showPortal(email) {
