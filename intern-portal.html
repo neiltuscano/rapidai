@@ -28,7 +28,7 @@
     body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
 
     /* ── LOGIN GATE ─────────────────────────────────── */
-    #login-gate{
+    #login-gate,#set-password-gate{
       position:fixed;inset:0;z-index:9999;
       background:var(--hero-bg);
       display:flex;align-items:center;justify-content:center;
@@ -251,6 +251,39 @@
 
     <div class="login-footer">
       Having trouble? Email <a href="mailto:hr@rapidaitechnologies.com">hr@rapidaitechnologies.com</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     SET PASSWORD — shown on invite/recovery link click
+════════════════════════════════════════════════ -->
+<div id="set-password-gate" class="hidden">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-mark"></div>
+      <span class="login-logo-text">RAPID<span>AI</span></span>
+    </div>
+    <h1 class="login-title">Create Your Password</h1>
+    <p class="login-sub">Welcome! Set a password to access<br>your Intern Portal going forward.</p>
+
+    <div class="login-field">
+      <label for="new-password">New Password</label>
+      <input type="password" id="new-password" placeholder="At least 8 characters" autocomplete="new-password" />
+    </div>
+    <div class="login-field">
+      <label for="confirm-password">Confirm Password</label>
+      <input type="password" id="confirm-password" placeholder="Repeat password" autocomplete="new-password" />
+    </div>
+
+    <button class="login-btn" id="set-pwd-btn" onclick="setPassword()">
+      <span id="set-pwd-btn-text">Set Password &amp; Enter Portal</span>
+    </button>
+
+    <div class="login-error" id="set-pwd-error"></div>
+
+    <div class="login-footer">
+      Need help? <a href="mailto:hr@rapidaitechnologies.com">hr@rapidaitechnologies.com</a>
     </div>
   </div>
 </div>
@@ -603,25 +636,41 @@
 
 <script>
   // ─── SUPABASE CONFIG ─────────────────────────────────────────────
-  // Replace these two values after creating your free Supabase project
-  // at https://supabase.com → New Project → Settings → API
-  const SUPABASE_URL  = 'https://mfbisoxplgjquxzrwtny.supabase.co';   // e.g. https://xxxx.supabase.co
-  const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mYmlzb3hwbGdqcXV4enJ3dG55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNjE5NDUsImV4cCI6MjEwNTgzNzk0NX0.PF0P6H3KCC7ur2024OEiKsse0ZbtPy-evSGj27qcmq0'; // starts with eyJ...
+  const SUPABASE_URL  = 'https://mfbisoxplgjquxzrwtny.supabase.co';
+  const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mYmlzb3hwbGdqcXV4enJ3dG55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNjE5NDUsImV4cCI6MjEwNTgzNzk0NX0.PF0P6H3KCC7ur2024OEiKsse0ZbtPy-evSGj27qcmq0';
 
   const { createClient } = supabase;
   const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
   // ─── AUTH STATE ──────────────────────────────────────────────────
   async function checkAuth() {
+    // Parse URL hash — Supabase puts tokens here after email link click
+    const hash = window.location.hash;
+    const params = new URLSearchParams(hash.replace('#', ''));
+    const type = params.get('type');
+
+    // Invite link or password reset link clicked
+    if (type === 'invite' || type === 'recovery') {
+      // Supabase v2 auto-processes the hash and creates a session
+      // We just need to show the set-password UI
+      document.getElementById('login-gate').classList.add('hidden');
+      document.getElementById('set-password-gate').classList.remove('hidden');
+      // Clear the hash from the URL bar (cleaner UX)
+      window.history.replaceState(null, '', window.location.pathname);
+      return;
+    }
+
+    // Normal page load — check if already logged in
     const { data: { user } } = await db.auth.getUser();
     if (user) {
       showPortal(user.email);
     }
-    // If not logged in, login gate is already visible (default)
+    // Otherwise login gate stays visible
   }
 
   function showPortal(email) {
     document.getElementById('login-gate').classList.add('hidden');
+    document.getElementById('set-password-gate').classList.add('hidden');
     document.getElementById('portal-content').classList.add('visible');
     if (email) {
       document.getElementById('nav-user-email').textContent = email;
@@ -662,13 +711,50 @@
     errBox.classList.add('visible');
   }
 
-  // Allow Enter key to submit
+  // Allow Enter key to submit login
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-      const gate = document.getElementById('login-gate');
-      if (!gate.classList.contains('hidden')) signIn();
-    }
+    if (e.key !== 'Enter') return;
+    const loginVisible  = !document.getElementById('login-gate').classList.contains('hidden');
+    const setPwdVisible = !document.getElementById('set-password-gate').classList.contains('hidden');
+    if (loginVisible)  signIn();
+    if (setPwdVisible) setPassword();
   });
+
+  // ─── SET PASSWORD (invite / recovery flow) ────────────────────────
+  async function setPassword() {
+    const password = document.getElementById('new-password').value;
+    const confirm  = document.getElementById('confirm-password').value;
+    const btn      = document.getElementById('set-pwd-btn');
+    const btnText  = document.getElementById('set-pwd-btn-text');
+    const errBox   = document.getElementById('set-pwd-error');
+
+    errBox.classList.remove('visible');
+
+    if (password.length < 8) {
+      errBox.textContent = 'Password must be at least 8 characters.';
+      errBox.classList.add('visible');
+      return;
+    }
+    if (password !== confirm) {
+      errBox.textContent = 'Passwords do not match.';
+      errBox.classList.add('visible');
+      return;
+    }
+
+    btn.disabled = true;
+    btnText.textContent = 'Setting password…';
+
+    const { data, error } = await db.auth.updateUser({ password });
+
+    if (error) {
+      btn.disabled = false;
+      btnText.textContent = 'Set Password & Enter Portal';
+      errBox.textContent = error.message;
+      errBox.classList.add('visible');
+    } else {
+      showPortal(data.user.email);
+    }
+  }
 
   // ─── SIGN OUT ────────────────────────────────────────────────────
   async function signOut() {
