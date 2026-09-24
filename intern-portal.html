@@ -217,6 +217,34 @@
 
     /* ── RESPONSIVE ───────────────────────────────── */
     @media(max-width:900px){.track-grid{grid-template-columns:1fr 1fr;}.tools-grid{grid-template-columns:1fr 1fr;}.prog-grid{grid-template-columns:1fr 1fr;}}
+
+    /* ── TRAINING LIBRARY ─────────────────────────────────────────── */
+    .training-section{max-width:1120px;margin:0 auto;padding:52px 40px 60px;}
+    .training-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:0;}
+    @media(max-width:700px){.training-grid{grid-template-columns:1fr;}}
+    .train-card{background:var(--surface);border:2px solid var(--border);border-radius:16px;overflow:hidden;transition:border-color .2s;}
+    .train-card:hover{border-color:rgba(107,47,236,0.4);}
+    .train-card-header{display:flex;align-items:center;gap:14px;padding:20px 22px;cursor:pointer;user-select:none;}
+    .train-card-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+    .train-card-icon.gw{background:rgba(234,179,8,0.13);}
+    .train-card-icon.ai{background:rgba(107,47,236,0.12);}
+    .train-card-icon.sap{background:rgba(16,185,129,0.12);}
+    .train-card-icon.sc{background:rgba(236,72,153,0.12);}
+    .train-card-title{font-size:16px;font-weight:700;color:var(--text);}
+    .train-card-sub{font-size:12px;color:var(--text-2);margin-top:2px;}
+    .train-card-chevron{margin-left:auto;font-size:12px;color:var(--text-3);transition:transform .2s;flex-shrink:0;}
+    .train-card.open .train-card-chevron{transform:rotate(180deg);}
+    .train-card-body{display:none;padding:0 22px 18px;border-top:1px solid var(--border);}
+    .train-card.open .train-card-body{display:block;}
+    .train-file-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--ink-10);text-decoration:none;color:inherit;transition:background .15s;border-radius:8px;}
+    .train-file-row:last-child{border-bottom:none;}
+    .train-file-row:hover{background:var(--purple-dim);padding-left:6px;}
+    .train-file-badge{font-size:11px;font-weight:700;letter-spacing:.03em;padding:2px 8px;border-radius:6px;flex-shrink:0;}
+    .train-file-badge.docx{background:rgba(16,185,129,0.12);color:#059669;}
+    .train-file-badge.pptx{background:rgba(234,88,12,0.12);color:#EA580C;}
+    .train-file-name{font-size:13.5px;font-weight:600;color:var(--text);}
+    .train-file-desc{font-size:11.5px;color:var(--text-2);margin-top:1px;}
+    .train-dl-arrow{margin-left:auto;font-size:14px;color:var(--purple);flex-shrink:0;}
     @media(max-width:600px){nav,.hero,.track-section,.docs-panel,.tools-section,.program-docs-inner,.contact-strip,footer{padding-left:20px;padding-right:20px;}.track-grid,.prog-grid{grid-template-columns:1fr;}.tools-grid{grid-template-columns:1fr 1fr;}.login-card{padding:36px 24px 32px;}}
   </style>
 </head>
@@ -574,6 +602,142 @@
   </div>
 </div>
 
+
+<!-- TRAINING LIBRARY -->
+<hr />
+<div class="training-section">
+  <p class="section-label">All Tracks</p>
+  <h2 class="section-title">Training Library</h2>
+  <p class="section-sub" style="margin-bottom:28px">Domain-specific reference materials — handbooks, slide decks, MCQ assessments, and quick reference guides. Click a domain to expand and download.</p>
+  <div class="training-grid">
+
+    <!-- Guidewire -->
+    <div class="train-card" id="tc-gw">
+      <div class="train-card-header" onclick="toggleTrainCard('tc-gw')">
+        <div class="train-card-icon gw">⚙️</div>
+        <div><div class="train-card-title">Guidewire</div><div class="train-card-sub">InsuranceSuite · PolicyCenter · BillingCenter · ClaimCenter</div></div>
+        <span class="train-card-chevron">▼</span>
+      </div>
+      <div class="train-card-body">
+        <a class="train-file-row" href="training-docs/guidewire/RapidAI_Guidewire_Handbook.docx" download>
+          <span class="train-file-badge docx">DOCX</span>
+          <div><div class="train-file-name">Comprehensive Handbook</div><div class="train-file-desc">50+ page deep-dive across all Guidewire modules</div></div>
+          <span class="train-dl-arrow">⬇</span>
+        </a>
+        <a class="train-file-row" href="training-docs/guidewire/RapidAI_Guidewire_Overview.pptx" download>
+          <span class="train-file-badge pptx">PPTX</span>
+          <div><div class="train-file-name">Overview Slide Deck</div><div class="train-file-desc">24-slide presentation for training sessions</div></div>
+          <span class="train-dl-arrow">⬇</span>
+        </a>
+        <a class="train-file-row" href="training-docs/guidewire/RapidAI_Guidewire_MCQ_Test.docx" download>
+          <span class="train-file-badge docx">DOCX</span>
+          <div><div class="train-file-name">MCQ Assessment (80 Questions)</div><div class="train-file-desc">4-section knowledge test with answers</div></div>
+          <span class="train-dl-arrow">⬇</span>
+        </a>
+        <a class="train-file-row" href="training-docs/guidewire/RapidAI_Guidewire_QuickRef.docx" download>
+          <span class="train-file-badge docx">DOCX</span>
+          <div><div class="train-file-name">Quick Reference Book</div><div class="train-file-desc">Compact cheat sheet — key concepts &amp; T-codes</div></div>
+          <span class="train-dl-arrow">⬇</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- AI -->
+    <div class="train-card" id="tc-ai">
+      <div class="train-card-header" onclick="toggleTrainCard('tc-ai')">
+        <div class="train-card-icon ai">🤖</div>
+        <div><div class="train-card-title">Artificial Intelligence</div><div class="train-card-sub">Foundations · ML · LLMs · Agents · Prompt Engineering</div></div>
+        <span class="train-card-chevron">▼</span>
+      </div>
+      <div class="train-card-body">
+        <a class="train-file-row" href="training-docs/ai/RapidAI_AI_Handbook.docx" download>
+          <span class="train-file-badge docx">DOCX</span>
+          <div><div class="train-file-name">Comprehensive Handbook</div><div class="train-file-desc">50+ page guide from ML basics to GenAI &amp; Agents</div></div>
+          <span class="train-dl-arrow">⬇</span>
+        </a>
+        <a class="train-file-row" href="training-docs/ai/RapidAI_AI_Overview.pptx" download>
+          <span class="train-file-badge pptx">PPTX</span>
+          <div><div class="train-file-name">Overview Slide Deck</div><div class="train-file-desc">24-slide presentation for training sessions</div></div>
+          <span class="train-dl-arrow">⬇</span>
+        </a>
+        <a class="train-file-row" href="training-docs/ai/RapidAI_AI_MCQ_Test.docx" download>
+          <span class="train-file-badge docx">DOCX</span>
+          <div><div class="train-file-name">MCQ Assessment (80 Questions)</div><div class="train-file-desc">4-section knowledge test with answers</div></div>
+          <span class="train-dl-arrow">⬇</span>
+        </a>
+        <a class="train-file-row" href="training-docs/ai/RapidAI_AI_QuickRef.docx" download>
+          <span class="train-file-badge docx">DOCX</span>
+          <div><div class="train-file-name">Quick Reference Book</div><div class="train-file-desc">Compact cheat sheet — models, tools, terms</div></div>
+          <span class="train-dl-arrow">⬇</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- SAP -->
+    <div class="train-card" id="tc-sap">
+      <div class="train-card-header" onclick="toggleTrainCard('tc-sap')">
+        <div class="train-card-icon sap">🏢</div>
+        <div><div class="train-card-title">SAP Enterprise Systems</div><div class="train-card-sub">FI/CO · MM · SD · HCM · BASIS · ABAP · BTP · Fiori</div></div>
+        <span class="train-card-chevron">▼</span>
+      </div>
+      <div class="train-card-body">
+        <a class="train-file-row" href="training-docs/sap/RapidAI_SAP_Handbook.docx" download>
+          <span class="train-file-badge docx">DOCX</span>
+          <div><div class="train-file-name">Comprehensive Handbook</div><div class="train-file-desc">50+ page guide across all SAP modules</div></div>
+          <span class="train-dl-arrow">⬇</span>
+        </a>
+        <a class="train-file-row" href="training-docs/sap/RapidAI_SAP_Overview.pptx" download>
+          <span class="train-file-badge pptx">PPTX</span>
+          <div><div class="train-file-name">Overview Slide Deck</div><div class="train-file-desc">24-slide presentation for training sessions</div></div>
+          <span class="train-dl-arrow">⬇</span>
+        </a>
+        <a class="train-file-row" href="training-docs/sap/RapidAI_SAP_MCQ_Test.docx" download>
+          <span class="train-file-badge docx">DOCX</span>
+          <div><div class="train-file-name">MCQ Assessment (80 Questions)</div><div class="train-file-desc">4-section knowledge test with answers</div></div>
+          <span class="train-dl-arrow">⬇</span>
+        </a>
+        <a class="train-file-row" href="training-docs/sap/RapidAI_SAP_QuickRef.docx" download>
+          <span class="train-file-badge docx">DOCX</span>
+          <div><div class="train-file-name">Quick Reference Book</div><div class="train-file-desc">Compact cheat sheet — T-codes, tables, key rules</div></div>
+          <span class="train-dl-arrow">⬇</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Supply Chain -->
+    <div class="train-card" id="tc-sc">
+      <div class="train-card-header" onclick="toggleTrainCard('tc-sc')">
+        <div class="train-card-icon sc">📦</div>
+        <div><div class="train-card-title">Supply Chain Management</div><div class="train-card-sub">Procurement · Inventory · WMS · Demand Planning · Lean</div></div>
+        <span class="train-card-chevron">▼</span>
+      </div>
+      <div class="train-card-body">
+        <a class="train-file-row" href="training-docs/supply-chain/RapidAI_SupplyChain_Handbook.docx" download>
+          <span class="train-file-badge docx">DOCX</span>
+          <div><div class="train-file-name">Comprehensive Handbook</div><div class="train-file-desc">50+ page guide from procurement to digital SC</div></div>
+          <span class="train-dl-arrow">⬇</span>
+        </a>
+        <a class="train-file-row" href="training-docs/supply-chain/RapidAI_SupplyChain_Overview.pptx" download>
+          <span class="train-file-badge pptx">PPTX</span>
+          <div><div class="train-file-name">Overview Slide Deck</div><div class="train-file-desc">24-slide presentation for training sessions</div></div>
+          <span class="train-dl-arrow">⬇</span>
+        </a>
+        <a class="train-file-row" href="training-docs/supply-chain/RapidAI_SupplyChain_MCQ_Test.docx" download>
+          <span class="train-file-badge docx">DOCX</span>
+          <div><div class="train-file-name">MCQ Assessment (80 Questions)</div><div class="train-file-desc">4-section knowledge test with answers</div></div>
+          <span class="train-dl-arrow">⬇</span>
+        </a>
+        <a class="train-file-row" href="training-docs/supply-chain/RapidAI_SupplyChain_QuickRef.docx" download>
+          <span class="train-file-badge docx">DOCX</span>
+          <div><div class="train-file-name">Quick Reference Book</div><div class="train-file-desc">Compact cheat sheet — KPIs, formulas, SCOR</div></div>
+          <span class="train-dl-arrow">⬇</span>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <!-- PROGRAM DOCS -->
 <hr />
 <div class="program-docs-section">
@@ -776,6 +940,11 @@
     setTimeout(function() { panel.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
   }
 
+
+  // ─── TRAINING CARD TOGGLE ──────────────────────────────────────
+  function toggleTrainCard(id) {
+    document.getElementById(id).classList.toggle('open');
+  }
   // ─── INIT ────────────────────────────────────────────────────────
   checkAuth();
 </script>
