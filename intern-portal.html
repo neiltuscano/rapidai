@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Intern Training Portal — Rapid AI Technologies</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --purple:#6B2FEC;--purple-lt:#8B5CF6;--purple-dim:#F0EAFF;
+      --purple-mid:rgba(107,47,236,0.12);--ink-10:rgba(19,7,46,0.08);
+      --bg:#FAFAFE;--bg-2:#F3F1FB;--surface:#FFFFFF;
+      --border:rgba(19,7,46,0.09);--text:#13072E;
+      --text-2:rgba(19,7,46,0.6);--text-3:rgba(19,7,46,0.38);
+      --hero-bg:#0C0621;--hero-sub:rgba(255,255,255,0.6);
+      --nav-bg:rgba(12,6,33,0.96);
+    }
+    @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+      --bg:#100825;--bg-2:#1A0F35;--surface:#1C1035;
+      --border:rgba(255,255,255,0.08);--text:#F0EEFF;
+      --text-2:rgba(240,238,255,0.6);--text-3:rgba(240,238,255,0.35);
+      --ink-10:rgba(255,255,255,0.06);
+    }}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
+
+    /* ── LOGIN GATE ─────────────────────────────────── */
+    #login-gate{
+      position:fixed;inset:0;z-index:9999;
+      background:var(--hero-bg);
+      display:flex;align-items:center;justify-content:center;
+      padding:24px;
+    }
+    #login-gate.hidden{display:none;}
+    .login-card{
+      width:100%;max-width:400px;
+      background:rgba(255,255,255,0.04);
+      border:1px solid rgba(255,255,255,0.10);
+      border-radius:20px;
+      padding:44px 40px 40px;
+      position:relative;
+    }
+    .login-card::before{
+      content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);
+      width:400px;height:200px;
+      background:radial-gradient(ellipse,rgba(107,47,236,0.35) 0%,transparent 68%);
+      pointer-events:none;
+    }
+    .login-logo{display:flex;align-items:center;gap:10px;margin-bottom:32px;justify-content:center;}
+    .login-logo-mark{width:28px;height:28px;background:var(--purple);clip-path:polygon(50% 0%,100% 75%,0% 75%);}
+    .login-logo-text{font-weight:800;font-size:16px;color:#fff;letter-spacing:-.01em;}
+    .login-logo-text span{color:var(--purple-lt);}
+    .login-title{font-size:22px;font-weight:800;color:#fff;letter-spacing:-.02em;text-align:center;margin-bottom:6px;}
+    .login-sub{font-size:13.5px;color:rgba(255,255,255,0.45);text-align:center;margin-bottom:32px;line-height:1.5;}
+    .login-field{margin-bottom:14px;}
+    .login-field label{display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,0.55);letter-spacing:.04em;text-transform:uppercase;margin-bottom:7px;}
+    .login-field input{
+      width:100%;background:rgba(255,255,255,0.07);
+      border:1px solid rgba(255,255,255,0.12);border-radius:10px;
+      color:#fff;font-family:inherit;font-size:14.5px;
+      padding:12px 14px;outline:none;
+      transition:border-color .15s,background .15s;
+    }
+    .login-field input::placeholder{color:rgba(255,255,255,0.25);}
+    .login-field input:focus{border-color:rgba(107,47,236,0.6);background:rgba(107,47,236,0.08);}
+    .login-btn{
+      width:100%;margin-top:6px;
+      background:var(--purple);color:#fff;
+      font-family:inherit;font-size:15px;font-weight:700;
+      padding:13px;border:none;border-radius:10px;cursor:pointer;
+      transition:background .15s,transform .12s;
+      display:flex;align-items:center;justify-content:center;gap:8px;
+    }
+    .login-btn:hover:not(:disabled){background:#5A22D4;transform:translateY(-1px);}
+    .login-btn:disabled{opacity:0.55;cursor:not-allowed;transform:none;}
+    .login-error{
+      margin-top:14px;padding:11px 14px;
+      background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);
+      border-radius:8px;font-size:13px;color:#FCA5A5;
+      display:none;
+    }
+    .login-error.visible{display:block;}
+    .login-footer{margin-top:24px;text-align:center;font-size:12px;color:rgba(255,255,255,0.28);}
+    .login-footer a{color:rgba(139,92,246,0.8);text-decoration:none;}
+    .login-footer a:hover{color:var(--purple-lt);}
+
+    /* ── PORTAL CONTENT (hidden until authed) ─────── */
+    #portal-content{display:none;}
+    #portal-content.visible{display:block;}
+
+    /* ── NAV ──────────────────────────────────────── */
+    nav{position:sticky;top:0;z-index:100;background:var(--nav-bg);backdrop-filter:blur(14px);
+      border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;
+      justify-content:space-between;padding:0 40px;height:60px;}
+    .logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .logo-mark{width:26px;height:26px;background:var(--purple);clip-path:polygon(50% 0%,100% 75%,0% 75%);}
+    .logo-text{font-weight:800;font-size:15px;color:#fff;letter-spacing:-.01em;}
+    .logo-text span{color:var(--purple-lt);}
+    .nav-pill{background:rgba(107,47,236,0.22);border:1px solid rgba(139,92,246,0.35);
+      color:var(--purple-lt);font-size:11px;font-weight:700;letter-spacing:.07em;
+      text-transform:uppercase;padding:3px 11px;border-radius:100px;}
+    .nav-links{display:flex;gap:20px;align-items:center;}
+    .nav-link{color:rgba(255,255,255,0.72);text-decoration:none;font-size:13.5px;font-weight:500;transition:color .15s;}
+    .nav-link:hover{color:#fff;}
+    .nav-user{font-size:12px;color:rgba(255,255,255,0.38);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .sign-out-btn{
+      background:transparent;border:1px solid rgba(255,255,255,0.14);
+      color:rgba(255,255,255,0.55);font-family:inherit;font-size:12px;font-weight:600;
+      padding:5px 12px;border-radius:8px;cursor:pointer;transition:all .15s;
+    }
+    .sign-out-btn:hover{border-color:rgba(255,255,255,0.3);color:#fff;}
+
+    /* ── HERO ─────────────────────────────────────── */
+    .hero-wrap{background:var(--hero-bg);}
+    .hero{max-width:1120px;margin:0 auto;padding:72px 40px 80px;
+      background-image:radial-gradient(ellipse 55% 55% at 85% 15%,rgba(107,47,236,0.28) 0%,transparent 65%),
+      radial-gradient(ellipse 40% 40% at 5% 90%,rgba(107,47,236,0.14) 0%,transparent 60%);}
+    .eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--purple-lt);margin-bottom:18px;}
+    .hero h1{font-size:clamp(36px,5vw,58px);font-weight:900;line-height:1.06;letter-spacing:-.03em;color:#fff;margin-bottom:18px;}
+    .hero h1 em{color:var(--purple-lt);font-style:normal;}
+    .hero-sub{font-size:17px;color:var(--hero-sub);max-width:520px;line-height:1.65;}
+
+    /* ── TRACK SECTION ────────────────────────────── */
+    .track-section{max-width:1120px;margin:0 auto;padding:60px 40px 0;}
+    .section-label{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--purple);margin-bottom:10px;}
+    .section-title{font-size:clamp(22px,2.8vw,32px);font-weight:800;letter-spacing:-.025em;margin-bottom:8px;}
+    .section-sub{font-size:15px;color:var(--text-2);margin-bottom:36px;}
+    .track-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+    .track-btn{background:var(--surface);border:2px solid var(--border);border-radius:14px;
+      padding:22px 20px;cursor:pointer;text-align:left;transition:all .2s;position:relative;overflow:hidden;}
+    .track-btn::before{content:'';position:absolute;inset:0;background:var(--purple-dim);opacity:0;transition:opacity .2s;}
+    .track-btn:hover{border-color:rgba(107,47,236,0.4);}
+    .track-btn:hover::before{opacity:1;}
+    .track-btn.active{border-color:var(--purple);box-shadow:0 0 0 4px rgba(107,47,236,0.12);}
+    .track-btn.active::before{opacity:1;}
+    .track-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;
+      justify-content:center;font-size:20px;margin-bottom:14px;position:relative;}
+    .track-icon.ai{background:rgba(107,47,236,0.12);}
+    .track-icon.auto{background:rgba(234,179,8,0.12);}
+    .track-icon.cont{background:rgba(236,72,153,0.12);}
+    .track-icon.biz{background:rgba(16,185,129,0.12);}
+    .track-name{font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;}
+    .track-tagline{font-size:12.5px;color:var(--text-2);line-height:1.5;}
+    .track-count{display:inline-block;margin-top:12px;font-size:11px;font-weight:600;
+      color:var(--purple);background:var(--purple-mid);padding:2px 9px;border-radius:100px;}
+
+    /* ── DOC PANELS ───────────────────────────────── */
+    .docs-panel{max-width:1120px;margin:0 auto;padding:40px 40px 80px;display:none;}
+    .docs-panel.visible{display:block;}
+    .panel-header{display:flex;align-items:center;gap:16px;padding:22px 26px;border-radius:14px;margin-bottom:28px;}
+    .panel-header.ai{background:linear-gradient(135deg,#4A1FBF,var(--purple));}
+    .panel-header.auto{background:linear-gradient(135deg,#92400E,#D97706);}
+    .panel-header.cont{background:linear-gradient(135deg,#9D174D,#DB2777);}
+    .panel-header.biz{background:linear-gradient(135deg,#065F46,#059669);}
+    .panel-icon{font-size:30px;}
+    .panel-title{font-size:20px;font-weight:800;color:#fff;letter-spacing:-.02em;}
+    .panel-sub{font-size:13px;color:rgba(255,255,255,0.7);margin-top:2px;}
+    .doc-category{margin-bottom:36px;}
+    .cat-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+      color:var(--text-3);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+    .docs-list{display:flex;flex-direction:column;gap:8px;}
+    .doc-row{display:flex;align-items:center;gap:14px;background:var(--surface);
+      border:1px solid var(--border);border-radius:10px;padding:13px 16px;
+      text-decoration:none;transition:border-color .15s,box-shadow .15s;}
+    .doc-row:hover{border-color:rgba(107,47,236,0.35);box-shadow:0 2px 16px rgba(107,47,236,0.07);}
+    .doc-type-badge{flex-shrink:0;width:34px;height:34px;border-radius:7px;
+      display:flex;align-items:center;justify-content:center;font-size:16px;}
+    .doc-type-badge.docx{background:rgba(37,99,235,0.1);}
+    .doc-type-badge.tpl{background:rgba(107,47,236,0.1);}
+    .doc-type-badge.ref{background:rgba(16,185,129,0.1);}
+    .doc-info{flex:1;min-width:0;}
+    .doc-name{font-size:14px;font-weight:600;color:var(--text);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .doc-meta{font-size:12px;color:var(--text-3);margin-top:1px;}
+    .doc-arrow{color:var(--text-3);font-size:14px;flex-shrink:0;}
+    .doc-row:hover .doc-arrow{color:var(--purple);}
+
+    /* ── PROGRAM DOCS ─────────────────────────────── */
+    hr{border:none;border-top:1px solid var(--border);}
+    .program-docs-section{background:var(--bg-2);}
+    .program-docs-inner{max-width:1120px;margin:0 auto;padding:52px 40px;}
+    .prog-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:28px;}
+    .prog-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+      padding:18px 20px;text-decoration:none;display:flex;align-items:center;
+      gap:12px;transition:border-color .15s,box-shadow .15s;}
+    .prog-card:hover{border-color:rgba(107,47,236,0.3);box-shadow:0 2px 16px rgba(107,47,236,0.07);}
+    .prog-icon{font-size:22px;flex-shrink:0;}
+    .prog-name{font-size:14px;font-weight:700;color:var(--text);}
+    .prog-type{font-size:11.5px;color:var(--text-3);}
+    .prog-arrow{color:var(--text-3);font-size:13px;margin-left:auto;flex-shrink:0;}
+
+    /* ── TOOLS ────────────────────────────────────── */
+    .tools-section{max-width:1120px;margin:0 auto;padding:52px 40px 72px;}
+    .tools-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+    .tool-chip{display:flex;align-items:center;gap:10px;background:var(--surface);
+      border:1px solid var(--border);border-radius:10px;padding:12px 14px;
+      text-decoration:none;transition:border-color .15s,box-shadow .15s;}
+    .tool-chip:hover{border-color:rgba(107,47,236,0.35);box-shadow:0 2px 14px rgba(107,47,236,0.07);}
+    .tool-emoji{font-size:18px;flex-shrink:0;}
+    .tool-name{font-size:13px;font-weight:600;color:var(--text);}
+    .tool-site{font-size:11px;color:var(--text-3);}
+
+    /* ── CONTACT + FOOTER ─────────────────────────── */
+    .contact-strip{background:var(--hero-bg);padding:48px 40px;}
+    .contact-inner{max-width:1120px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+    .contact-text h3{font-size:21px;font-weight:800;color:#fff;letter-spacing:-.02em;margin-bottom:4px;}
+    .contact-text p{font-size:14px;color:var(--hero-sub);}
+    .contact-btn{background:var(--purple);color:#fff;text-decoration:none;font-size:14px;
+      font-weight:600;padding:12px 22px;border-radius:8px;white-space:nowrap;transition:background .15s;}
+    .contact-btn:hover{background:#5B1FDC;}
+    footer{background:var(--hero-bg);border-top:1px solid rgba(255,255,255,0.06);padding:18px 40px;text-align:center;}
+    footer p{font-size:12px;color:rgba(255,255,255,0.28);}
+    footer a{color:rgba(255,255,255,0.42);text-decoration:none;}
+    footer a:hover{color:rgba(255,255,255,0.7);}
+
+    /* ── RESPONSIVE ───────────────────────────────── */
+    @media(max-width:900px){.track-grid{grid-template-columns:1fr 1fr;}.tools-grid{grid-template-columns:1fr 1fr;}.prog-grid{grid-template-columns:1fr 1fr;}}
+    @media(max-width:600px){nav,.hero,.track-section,.docs-panel,.tools-section,.program-docs-inner,.contact-strip,footer{padding-left:20px;padding-right:20px;}.track-grid,.prog-grid{grid-template-columns:1fr;}.tools-grid{grid-template-columns:1fr 1fr;}.login-card{padding:36px 24px 32px;}}
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════
+     LOGIN GATE — shown until authenticated
+════════════════════════════════════════════════ -->
+<div id="login-gate">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-mark"></div>
+      <span class="login-logo-text">RAPID<span>AI</span></span>
+    </div>
+    <h1 class="login-title">Intern Portal Login</h1>
+    <p class="login-sub">Enter the credentials from your enrollment email<br>to access your training materials.</p>
+
+    <div class="login-field">
+      <label for="login-email">Email address</label>
+      <input type="email" id="login-email" placeholder="you@email.com" autocomplete="email" />
+    </div>
+    <div class="login-field">
+      <label for="login-password">Password</label>
+      <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" />
+    </div>
+
+    <button class="login-btn" id="login-btn" onclick="signIn()">
+      <span id="login-btn-text">Sign In to Portal</span>
+    </button>
+
+    <div class="login-error" id="login-error"></div>
+
+    <div class="login-footer">
+      Having trouble? Email <a href="mailto:hr@rapidaitechnologies.com">hr@rapidaitechnologies.com</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PORTAL CONTENT — shown when authenticated
+════════════════════════════════════════════════ -->
+<div id="portal-content">
+
+<div class="hero-wrap">
+  <nav>
+    <a class="logo" href="https://rapidaitechnologies.com">
+      <div class="logo-mark"></div>
+      <span class="logo-text">RAPID<span>AI</span></span>
+    </a>
+    <span class="nav-pill">Intern Portal</span>
+    <div class="nav-links">
+      <span class="nav-user" id="nav-user-email"></span>
+      <a class="nav-link" href="https://rapidaitechnologies.com">← Main Site</a>
+      <a class="nav-link" href="mailto:hr@rapidaitechnologies.com">Help</a>
+      <button class="sign-out-btn" onclick="signOut()">Sign Out</button>
+    </div>
+  </nav>
+  <div class="hero">
+    <p class="eyebrow">Rapid AI Technologies LLC &nbsp;·&nbsp; Training Resources</p>
+    <h1>Intern<br /><em>Training Portal.</em></h1>
+    <p class="hero-sub">Select your program track below to access your training materials, templates, reference guides, and assignments — all in one place.</p>
+  </div>
+</div>
+
+<!-- TRACK SELECTOR -->
+<div class="track-section">
+  <p class="section-label">Step 1</p>
+  <h2 class="section-title">Select Your Track</h2>
+  <p class="section-sub">Choose the program you enrolled in. All materials for your track will appear below.</p>
+  <div class="track-grid">
+    <button class="track-btn" data-track="ai" onclick="selectTrack('ai')">
+      <div class="track-icon ai">🤖</div>
+      <div class="track-name">AI Track</div>
+      <div class="track-tagline">Practical AI tools, prompt engineering, automation, chatbots &amp; voice agents</div>
+      <span class="track-count">8 documents</span>
+    </button>
+    <button class="track-btn" data-track="auto" onclick="selectTrack('auto')">
+      <div class="track-icon auto">⚙️</div>
+      <div class="track-name">Automation Track</div>
+      <div class="track-tagline">Workflow automation with n8n, Make, and Zapier — no-code business solutions</div>
+      <span class="track-count">6 documents</span>
+    </button>
+    <button class="track-btn" data-track="cont" onclick="selectTrack('cont')">
+      <div class="track-icon cont">✍️</div>
+      <div class="track-name">Content Track</div>
+      <div class="track-tagline">AI-assisted content creation, social media, copywriting, and brand voice</div>
+      <span class="track-count">6 documents</span>
+    </button>
+    <button class="track-btn" data-track="biz" onclick="selectTrack('biz')">
+      <div class="track-icon biz">📊</div>
+      <div class="track-name">Business Strategy Track</div>
+      <div class="track-tagline">AI consulting, client discovery, ROI analysis, and solution scoping</div>
+      <span class="track-count">6 documents</span>
+    </button>
+  </div>
+</div>
+
+<!-- AI TRACK -->
+<div class="docs-panel" id="panel-ai">
+  <div class="panel-header ai">
+    <span class="panel-icon">🤖</span>
+    <div><div class="panel-title">AI Track — Training Materials</div><div class="panel-sub">Practical AI Tools &amp; Automation · Rapid AI Technologies LLC</div></div>
+  </div>
+  <div class="doc-category">
+    <div class="cat-label">Training Guides</div>
+    <div class="docs-list">
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge docx">📄</span>
+        <span class="doc-info"><span class="doc-name">AI Track — Program Overview &amp; Curriculum</span><span class="doc-meta">Start here · Full program outline, schedule, and expectations</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge docx">📄</span>
+        <span class="doc-info"><span class="doc-name">Module 1 — AI Foundations &amp; Landscape</span><span class="doc-meta">What AI is, how LLMs work, tool tour</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge docx">📄</span>
+        <span class="doc-info"><span class="doc-name">Module 2 — Prompt Engineering</span><span class="doc-meta">System prompts, few-shot, chain-of-thought techniques</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge docx">📄</span>
+        <span class="doc-info"><span class="doc-name">Module 3 — Automation with n8n &amp; Make</span><span class="doc-meta">Workflow builders, triggers, connectors</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge docx">📄</span>
+        <span class="doc-info"><span class="doc-name">Module 4 — AI Chatbots &amp; Voice Agents</span><span class="doc-meta">Voiceflow, Vapi.ai, ElevenLabs</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </div>
+  </div>
+  <div class="doc-category">
+    <div class="cat-label">Templates &amp; Worksheets</div>
+    <div class="docs-list">
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge tpl">🗂️</span>
+        <span class="doc-info"><span class="doc-name">Prompt Library Template</span><span class="doc-meta">Build your own reusable prompt collection</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge tpl">🗂️</span>
+        <span class="doc-info"><span class="doc-name">Workflow Design Worksheet</span><span class="doc-meta">Map automation logic before building</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </div>
+  </div>
+  <div class="doc-category">
+    <div class="cat-label">Assignments &amp; Portfolio</div>
+    <div class="docs-list">
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge ref">✅</span>
+        <span class="doc-info"><span class="doc-name">AI Track — Assignment Pack</span><span class="doc-meta">All project briefs for the program in one document</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge ref">🎓</span>
+        <span class="doc-info"><span class="doc-name">Portfolio &amp; Case Study Guidelines</span><span class="doc-meta">How to document and present your completed projects</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- AUTOMATION TRACK -->
+<div class="docs-panel" id="panel-auto">
+  <div class="panel-header auto">
+    <span class="panel-icon">⚙️</span>
+    <div><div class="panel-title">Automation Track — Training Materials</div><div class="panel-sub">No-Code Workflow Automation · Rapid AI Technologies LLC</div></div>
+  </div>
+  <div class="doc-category">
+    <div class="cat-label">Training Guides</div>
+    <div class="docs-list">
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge docx">📄</span>
+        <span class="doc-info"><span class="doc-name">Automation Track — Program Overview &amp; Curriculum</span><span class="doc-meta">Start here · Full outline, tools, and expectations</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge docx">📄</span>
+        <span class="doc-info"><span class="doc-name">Module 1 — Intro to Automation &amp; No-Code Tools</span><span class="doc-meta">Concepts, use cases, platform overview</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge docx">📄</span>
+        <span class="doc-info"><span class="doc-name">Module 2 — n8n Deep Dive</span><span class="doc-meta">Nodes, credentials, HTTP requests, webhooks</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge docx">📄</span>
+        <span class="doc-info"><span class="doc-name">Module 3 — Make (Integromat) Workflows</span><span class="doc-meta">Scenarios, modules, error handling</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </div>
+  </div>
+  <div class="doc-category">
+    <div class="cat-label">Templates &amp; Assignments</div>
+    <div class="docs-list">
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge tpl">🗂️</span>
+        <span class="doc-info"><span class="doc-name">Workflow Design Worksheet</span><span class="doc-meta">Map triggers, actions, and conditions before building</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge ref">✅</span>
+        <span class="doc-info"><span class="doc-name">Automation Track — Assignment Pack</span><span class="doc-meta">All project briefs for the program</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge ref">🎓</span>
+        <span class="doc-info"><span class="doc-name">Portfolio &amp; Case Study Guidelines</span><span class="doc-meta">How to document and present your completed workflows</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- CONTENT TRACK -->
+<div class="docs-panel" id="panel-cont">
+  <div class="panel-header cont">
+    <span class="panel-icon">✍️</span>
+    <div><div class="panel-title">Content Track — Training Materials</div><div class="panel-sub">AI-Assisted Content Creation · Rapid AI Technologies LLC</div></div>
+  </div>
+  <div class="doc-category">
+    <div class="cat-label">Training Guides</div>
+    <div class="docs-list">
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge docx">📄</span>
+        <span class="doc-info"><span class="doc-name">Content Track — Program Overview &amp; Curriculum</span><span class="doc-meta">Start here · Full outline, tools, and expectations</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge docx">📄</span>
+        <span class="doc-info"><span class="doc-name">Module 1 — AI Writing &amp; Brand Voice</span><span class="doc-meta">Tone, style, prompts for long-form content</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge docx">📄</span>
+        <span class="doc-info"><span class="doc-name">Module 2 — Social Media &amp; Short-Form AI Content</span><span class="doc-meta">LinkedIn, Instagram, repurposing pipelines</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge docx">📄</span>
+        <span class="doc-info"><span class="doc-name">Module 3 — AI Image &amp; Visual Content</span><span class="doc-meta">Midjourney, DALL-E, Canva AI workflows</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </div>
+  </div>
+  <div class="doc-category">
+    <div class="cat-label">Templates &amp; Assignments</div>
+    <div class="docs-list">
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge tpl">🗂️</span>
+        <span class="doc-info"><span class="doc-name">Content Calendar Template</span><span class="doc-meta">Monthly planning template for AI-assisted publishing</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge ref">✅</span>
+        <span class="doc-info"><span class="doc-name">Content Track — Assignment Pack</span><span class="doc-meta">All project briefs for the program</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge ref">🎓</span>
+        <span class="doc-info"><span class="doc-name">Portfolio &amp; Case Study Guidelines</span><span class="doc-meta">How to present your content projects for employers</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- BUSINESS STRATEGY TRACK -->
+<div class="docs-panel" id="panel-biz">
+  <div class="panel-header biz">
+    <span class="panel-icon">📊</span>
+    <div><div class="panel-title">Business Strategy Track — Training Materials</div><div class="panel-sub">AI Consulting &amp; Client Solutions · Rapid AI Technologies LLC</div></div>
+  </div>
+  <div class="doc-category">
+    <div class="cat-label">Training Guides</div>
+    <div class="docs-list">
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge docx">📄</span>
+        <span class="doc-info"><span class="doc-name">Business Strategy Track — Program Overview &amp; Curriculum</span><span class="doc-meta">Start here · Full process outline and expectations</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge docx">📄</span>
+        <span class="doc-info"><span class="doc-name">Module 1 — AI Readiness Assessment</span><span class="doc-meta">How to evaluate a small business for AI fit</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge docx">📄</span>
+        <span class="doc-info"><span class="doc-name">Module 2 — Scoping &amp; Proposing AI Solutions</span><span class="doc-meta">Discovery calls, scope docs, pricing logic</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge docx">📄</span>
+        <span class="doc-info"><span class="doc-name">Module 3 — ROI Analysis &amp; Client Reporting</span><span class="doc-meta">Measuring impact and communicating results</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </div>
+  </div>
+  <div class="doc-category">
+    <div class="cat-label">Templates &amp; Assignments</div>
+    <div class="docs-list">
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge tpl">🗂️</span>
+        <span class="doc-info"><span class="doc-name">Client Discovery Questionnaire</span><span class="doc-meta">Template for first-call information gathering</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge tpl">🗂️</span>
+        <span class="doc-info"><span class="doc-name">AI Solution Proposal Template</span><span class="doc-meta">Slide/doc template for pitching to a client</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+      <a class="doc-row" href="#" target="_blank" rel="noopener">
+        <span class="doc-type-badge ref">✅</span>
+        <span class="doc-info"><span class="doc-name">Business Strategy Track — Assignment Pack</span><span class="doc-meta">All project briefs for the program</span></span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRAM DOCS -->
+<hr />
+<div class="program-docs-section">
+  <div class="program-docs-inner">
+    <p class="section-label">All Tracks</p>
+    <h2 class="section-title">Program Documents</h2>
+    <p class="section-sub" style="margin-bottom:0">Your offer letter, internship agreement, and program overview — for your records.</p>
+    <div class="prog-grid">
+      <a class="prog-card" href="#" target="_blank" rel="noopener">
+        <span class="prog-icon">📄</span>
+        <div><div class="prog-name">Offer Letter</div><div class="prog-type">Your signed copy · DOCX / PDF</div></div>
+        <span class="prog-arrow">↗</span>
+      </a>
+      <a class="prog-card" href="#" target="_blank" rel="noopener">
+        <span class="prog-icon">📋</span>
+        <div><div class="prog-name">Internship Agreement</div><div class="prog-type">Signed copy · DOCX / PDF</div></div>
+        <span class="prog-arrow">↗</span>
+      </a>
+      <a class="prog-card" href="#" target="_blank" rel="noopener">
+        <span class="prog-icon">🎓</span>
+        <div><div class="prog-name">Certificate of Completion</div><div class="prog-type">Issued at end of program</div></div>
+        <span class="prog-arrow">↗</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- TOOLS -->
+<hr />
+<div class="tools-section">
+  <p class="section-label">All Tracks</p>
+  <h2 class="section-title" style="margin-bottom:6px">Tools &amp; Platforms</h2>
+  <p class="section-sub" style="margin-bottom:28px">Sign up for these before your first session. Free tiers are fine for the whole program.</p>
+  <div class="tools-grid">
+    <a class="tool-chip" href="https://chat.openai.com" target="_blank" rel="noopener"><span class="tool-emoji">🤖</span><div><div class="tool-name">ChatGPT</div><div class="tool-site">chat.openai.com</div></div></a>
+    <a class="tool-chip" href="https://claude.ai" target="_blank" rel="noopener"><span class="tool-emoji">⚡</span><div><div class="tool-name">Claude</div><div class="tool-site">claude.ai</div></div></a>
+    <a class="tool-chip" href="https://n8n.io" target="_blank" rel="noopener"><span class="tool-emoji">🔗</span><div><div class="tool-name">n8n</div><div class="tool-site">n8n.io</div></div></a>
+    <a class="tool-chip" href="https://make.com" target="_blank" rel="noopener"><span class="tool-emoji">⚙️</span><div><div class="tool-name">Make</div><div class="tool-site">make.com</div></div></a>
+    <a class="tool-chip" href="https://vapi.ai" target="_blank" rel="noopener"><span class="tool-emoji">📞</span><div><div class="tool-name">Vapi.ai</div><div class="tool-site">vapi.ai</div></div></a>
+    <a class="tool-chip" href="https://voiceflow.com" target="_blank" rel="noopener"><span class="tool-emoji">💬</span><div><div class="tool-name">Voiceflow</div><div class="tool-site">voiceflow.com</div></div></a>
+    <a class="tool-chip" href="https://elevenlabs.io" target="_blank" rel="noopener"><span class="tool-emoji">🎙️</span><div><div class="tool-name">ElevenLabs</div><div class="tool-site">elevenlabs.io</div></div></a>
+    <a class="tool-chip" href="https://notion.so" target="_blank" rel="noopener"><span class="tool-emoji">📓</span><div><div class="tool-name">Notion</div><div class="tool-site">notion.so</div></div></a>
+  </div>
+</div>
+
+<div class="contact-strip">
+  <div class="contact-inner">
+    <div class="contact-text">
+      <h3>Questions? We're here.</h3>
+      <p>Reach out to your supervisor — or email HR for administrative questions.</p>
+    </div>
+    <a class="contact-btn" href="mailto:hr@rapidaitechnologies.com">📧 hr@rapidaitechnologies.com</a>
+  </div>
+</div>
+<footer>
+  <p>© 2026 Rapid AI Technologies LLC &nbsp;·&nbsp; Dallas, TX &nbsp;·&nbsp; <a href="https://rapidaitechnologies.com">rapidaitechnologies.com</a></p>
+</footer>
+
+</div><!-- /portal-content -->
+
+<script>
+  // ─── SUPABASE CONFIG ─────────────────────────────────────────────
+  // Replace these two values after creating your free Supabase project
+  // at https://supabase.com → New Project → Settings → API
+  const SUPABASE_URL  = 'YOUR_SUPABASE_URL';   // e.g. https://xxxx.supabase.co
+  const SUPABASE_KEY  = 'YOUR_SUPABASE_ANON_KEY'; // starts with eyJ...
+
+  const { createClient } = supabase;
+  const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // ─── AUTH STATE ──────────────────────────────────────────────────
+  async function checkAuth() {
+    const { data: { user } } = await db.auth.getUser();
+    if (user) {
+      showPortal(user.email);
+    }
+    // If not logged in, login gate is already visible (default)
+  }
+
+  function showPortal(email) {
+    document.getElementById('login-gate').classList.add('hidden');
+    document.getElementById('portal-content').classList.add('visible');
+    if (email) {
+      document.getElementById('nav-user-email').textContent = email;
+    }
+  }
+
+  // ─── SIGN IN ─────────────────────────────────────────────────────
+  async function signIn() {
+    const email    = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const btn      = document.getElementById('login-btn');
+    const btnText  = document.getElementById('login-btn-text');
+    const errBox   = document.getElementById('login-error');
+
+    if (!email || !password) {
+      showError('Please enter your email and password.');
+      return;
+    }
+
+    btn.disabled = true;
+    btnText.textContent = 'Signing in…';
+    errBox.classList.remove('visible');
+
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      btn.disabled = false;
+      btnText.textContent = 'Sign In to Portal';
+      showError('Incorrect email or password. Contact hr@rapidaitechnologies.com if you need help.');
+    } else {
+      showPortal(data.user.email);
+    }
+  }
+
+  function showError(msg) {
+    const errBox = document.getElementById('login-error');
+    errBox.textContent = msg;
+    errBox.classList.add('visible');
+  }
+
+  // Allow Enter key to submit
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      const gate = document.getElementById('login-gate');
+      if (!gate.classList.contains('hidden')) signIn();
+    }
+  });
+
+  // ─── SIGN OUT ────────────────────────────────────────────────────
+  async function signOut() {
+    await db.auth.signOut();
+    document.getElementById('portal-content').classList.remove('visible');
+    document.getElementById('login-gate').classList.remove('hidden');
+    document.getElementById('login-email').value = '';
+    document.getElementById('login-password').value = '';
+    document.getElementById('nav-user-email').textContent = '';
+  }
+
+  // ─── TRACK SELECTOR ──────────────────────────────────────────────
+  function selectTrack(id) {
+    document.querySelectorAll('.track-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('[data-track="' + id + '"]').classList.add('active');
+    document.querySelectorAll('.docs-panel').forEach(p => p.classList.remove('visible'));
+    var panel = document.getElementById('panel-' + id);
+    panel.classList.add('visible');
+    setTimeout(function() { panel.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
+  }
+
+  // ─── INIT ────────────────────────────────────────────────────────
+  checkAuth();
+</script>
+</body>
+</html>
