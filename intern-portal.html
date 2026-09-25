@@ -812,10 +812,16 @@
   // onAuthStateChange instead of manually parsing window.location.hash.
   db.auth.onAuthStateChange(async (event, session) => {
     if (event === 'PASSWORD_RECOVERY') {
-      // Token processed — now safe to show set-password UI and clean the URL
-      document.getElementById('login-gate').classList.add('hidden');
-      document.getElementById('set-password-gate').classList.remove('hidden');
-      window.history.replaceState(null, '', window.location.pathname);
+      // Only show set-password gate if the user isn't already in the portal
+      const portalOpen = document.getElementById('portal-content').classList.contains('visible');
+      if (!portalOpen) {
+        document.getElementById('login-gate').classList.add('hidden');
+        document.getElementById('set-password-gate').classList.remove('hidden');
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+    } else if (event === 'USER_UPDATED' && session) {
+      // Password was set successfully — go straight into the portal
+      showPortal(session.user.email);
     }
   });
 
