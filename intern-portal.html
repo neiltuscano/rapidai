@@ -28,7 +28,7 @@
     body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
 
     /* ── LOGIN GATE ─────────────────────────────────── */
-    #login-gate,#set-password-gate{
+    #login-gate{
       position:fixed;inset:0;z-index:9999;
       background:var(--hero-bg);
       display:flex;align-items:center;justify-content:center;
@@ -217,34 +217,6 @@
 
     /* ── RESPONSIVE ───────────────────────────────── */
     @media(max-width:900px){.track-grid{grid-template-columns:1fr 1fr;}.tools-grid{grid-template-columns:1fr 1fr;}.prog-grid{grid-template-columns:1fr 1fr;}}
-
-    /* ── TRAINING LIBRARY ─────────────────────────────────────────── */
-    .training-section{max-width:1120px;margin:0 auto;padding:52px 40px 60px;}
-    .training-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:0;}
-    @media(max-width:700px){.training-grid{grid-template-columns:1fr;}}
-    .train-card{background:var(--surface);border:2px solid var(--border);border-radius:16px;overflow:hidden;transition:border-color .2s;}
-    .train-card:hover{border-color:rgba(107,47,236,0.4);}
-    .train-card-header{display:flex;align-items:center;gap:14px;padding:20px 22px;cursor:pointer;user-select:none;}
-    .train-card-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
-    .train-card-icon.gw{background:rgba(234,179,8,0.13);}
-    .train-card-icon.ai{background:rgba(107,47,236,0.12);}
-    .train-card-icon.sap{background:rgba(16,185,129,0.12);}
-    .train-card-icon.sc{background:rgba(236,72,153,0.12);}
-    .train-card-title{font-size:16px;font-weight:700;color:var(--text);}
-    .train-card-sub{font-size:12px;color:var(--text-2);margin-top:2px;}
-    .train-card-chevron{margin-left:auto;font-size:12px;color:var(--text-3);transition:transform .2s;flex-shrink:0;}
-    .train-card.open .train-card-chevron{transform:rotate(180deg);}
-    .train-card-body{display:none;padding:0 22px 18px;border-top:1px solid var(--border);}
-    .train-card.open .train-card-body{display:block;}
-    .train-file-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--ink-10);text-decoration:none;color:inherit;transition:background .15s;border-radius:8px;}
-    .train-file-row:last-child{border-bottom:none;}
-    .train-file-row:hover{background:var(--purple-dim);padding-left:6px;}
-    .train-file-badge{font-size:11px;font-weight:700;letter-spacing:.03em;padding:2px 8px;border-radius:6px;flex-shrink:0;}
-    .train-file-badge.docx{background:rgba(16,185,129,0.12);color:#059669;}
-    .train-file-badge.pptx{background:rgba(234,88,12,0.12);color:#EA580C;}
-    .train-file-name{font-size:13.5px;font-weight:600;color:var(--text);}
-    .train-file-desc{font-size:11.5px;color:var(--text-2);margin-top:1px;}
-    .train-dl-arrow{margin-left:auto;font-size:14px;color:var(--purple);flex-shrink:0;}
     @media(max-width:600px){nav,.hero,.track-section,.docs-panel,.tools-section,.program-docs-inner,.contact-strip,footer{padding-left:20px;padding-right:20px;}.track-grid,.prog-grid{grid-template-columns:1fr;}.tools-grid{grid-template-columns:1fr 1fr;}.login-card{padding:36px 24px 32px;}}
   </style>
 </head>
@@ -279,39 +251,6 @@
 
     <div class="login-footer">
       Having trouble? Email <a href="mailto:hr@rapidaitechnologies.com">hr@rapidaitechnologies.com</a>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════
-     SET PASSWORD — shown on invite/recovery link click
-════════════════════════════════════════════════ -->
-<div id="set-password-gate" class="hidden">
-  <div class="login-card">
-    <div class="login-logo">
-      <div class="login-logo-mark"></div>
-      <span class="login-logo-text">RAPID<span>AI</span></span>
-    </div>
-    <h1 class="login-title">Create Your Password</h1>
-    <p class="login-sub">Welcome! Set a password to access<br>your Intern Portal going forward.</p>
-
-    <div class="login-field">
-      <label for="new-password">New Password</label>
-      <input type="password" id="new-password" placeholder="At least 8 characters" autocomplete="new-password" />
-    </div>
-    <div class="login-field">
-      <label for="confirm-password">Confirm Password</label>
-      <input type="password" id="confirm-password" placeholder="Repeat password" autocomplete="new-password" />
-    </div>
-
-    <button class="login-btn" id="set-pwd-btn" onclick="setPassword()">
-      <span id="set-pwd-btn-text">Set Password &amp; Enter Portal</span>
-    </button>
-
-    <div class="login-error" id="set-pwd-error"></div>
-
-    <div class="login-footer">
-      Need help? <a href="mailto:hr@rapidaitechnologies.com">hr@rapidaitechnologies.com</a>
     </div>
   </div>
 </div>
@@ -602,142 +541,6 @@
   </div>
 </div>
 
-
-<!-- TRAINING LIBRARY -->
-<hr />
-<div class="training-section">
-  <p class="section-label">All Tracks</p>
-  <h2 class="section-title">Training Library</h2>
-  <p class="section-sub" style="margin-bottom:28px">Domain-specific reference materials — handbooks, slide decks, MCQ assessments, and quick reference guides. Click a domain to expand and download.</p>
-  <div class="training-grid">
-
-    <!-- Guidewire -->
-    <div class="train-card" id="tc-gw">
-      <div class="train-card-header" onclick="toggleTrainCard('tc-gw')">
-        <div class="train-card-icon gw">⚙️</div>
-        <div><div class="train-card-title">Guidewire</div><div class="train-card-sub">InsuranceSuite · PolicyCenter · BillingCenter · ClaimCenter</div></div>
-        <span class="train-card-chevron">▼</span>
-      </div>
-      <div class="train-card-body">
-        <a class="train-file-row" href="training-docs/guidewire/RapidAI_Guidewire_Handbook.docx" download>
-          <span class="train-file-badge docx">DOCX</span>
-          <div><div class="train-file-name">Comprehensive Handbook</div><div class="train-file-desc">50+ page deep-dive across all Guidewire modules</div></div>
-          <span class="train-dl-arrow">⬇</span>
-        </a>
-        <a class="train-file-row" href="training-docs/guidewire/RapidAI_Guidewire_Overview.pptx" download>
-          <span class="train-file-badge pptx">PPTX</span>
-          <div><div class="train-file-name">Overview Slide Deck</div><div class="train-file-desc">24-slide presentation for training sessions</div></div>
-          <span class="train-dl-arrow">⬇</span>
-        </a>
-        <a class="train-file-row" href="training-docs/guidewire/RapidAI_Guidewire_MCQ_Test.docx" download>
-          <span class="train-file-badge docx">DOCX</span>
-          <div><div class="train-file-name">MCQ Assessment (80 Questions)</div><div class="train-file-desc">4-section knowledge test with answers</div></div>
-          <span class="train-dl-arrow">⬇</span>
-        </a>
-        <a class="train-file-row" href="training-docs/guidewire/RapidAI_Guidewire_QuickRef.docx" download>
-          <span class="train-file-badge docx">DOCX</span>
-          <div><div class="train-file-name">Quick Reference Book</div><div class="train-file-desc">Compact cheat sheet — key concepts &amp; T-codes</div></div>
-          <span class="train-dl-arrow">⬇</span>
-        </a>
-      </div>
-    </div>
-
-    <!-- AI -->
-    <div class="train-card" id="tc-ai">
-      <div class="train-card-header" onclick="toggleTrainCard('tc-ai')">
-        <div class="train-card-icon ai">🤖</div>
-        <div><div class="train-card-title">Artificial Intelligence</div><div class="train-card-sub">Foundations · ML · LLMs · Agents · Prompt Engineering</div></div>
-        <span class="train-card-chevron">▼</span>
-      </div>
-      <div class="train-card-body">
-        <a class="train-file-row" href="training-docs/ai/RapidAI_AI_Handbook.docx" download>
-          <span class="train-file-badge docx">DOCX</span>
-          <div><div class="train-file-name">Comprehensive Handbook</div><div class="train-file-desc">50+ page guide from ML basics to GenAI &amp; Agents</div></div>
-          <span class="train-dl-arrow">⬇</span>
-        </a>
-        <a class="train-file-row" href="training-docs/ai/RapidAI_AI_Overview.pptx" download>
-          <span class="train-file-badge pptx">PPTX</span>
-          <div><div class="train-file-name">Overview Slide Deck</div><div class="train-file-desc">24-slide presentation for training sessions</div></div>
-          <span class="train-dl-arrow">⬇</span>
-        </a>
-        <a class="train-file-row" href="training-docs/ai/RapidAI_AI_MCQ_Test.docx" download>
-          <span class="train-file-badge docx">DOCX</span>
-          <div><div class="train-file-name">MCQ Assessment (80 Questions)</div><div class="train-file-desc">4-section knowledge test with answers</div></div>
-          <span class="train-dl-arrow">⬇</span>
-        </a>
-        <a class="train-file-row" href="training-docs/ai/RapidAI_AI_QuickRef.docx" download>
-          <span class="train-file-badge docx">DOCX</span>
-          <div><div class="train-file-name">Quick Reference Book</div><div class="train-file-desc">Compact cheat sheet — models, tools, terms</div></div>
-          <span class="train-dl-arrow">⬇</span>
-        </a>
-      </div>
-    </div>
-
-    <!-- SAP -->
-    <div class="train-card" id="tc-sap">
-      <div class="train-card-header" onclick="toggleTrainCard('tc-sap')">
-        <div class="train-card-icon sap">🏢</div>
-        <div><div class="train-card-title">SAP Enterprise Systems</div><div class="train-card-sub">FI/CO · MM · SD · HCM · BASIS · ABAP · BTP · Fiori</div></div>
-        <span class="train-card-chevron">▼</span>
-      </div>
-      <div class="train-card-body">
-        <a class="train-file-row" href="training-docs/sap/RapidAI_SAP_Handbook.docx" download>
-          <span class="train-file-badge docx">DOCX</span>
-          <div><div class="train-file-name">Comprehensive Handbook</div><div class="train-file-desc">50+ page guide across all SAP modules</div></div>
-          <span class="train-dl-arrow">⬇</span>
-        </a>
-        <a class="train-file-row" href="training-docs/sap/RapidAI_SAP_Overview.pptx" download>
-          <span class="train-file-badge pptx">PPTX</span>
-          <div><div class="train-file-name">Overview Slide Deck</div><div class="train-file-desc">24-slide presentation for training sessions</div></div>
-          <span class="train-dl-arrow">⬇</span>
-        </a>
-        <a class="train-file-row" href="training-docs/sap/RapidAI_SAP_MCQ_Test.docx" download>
-          <span class="train-file-badge docx">DOCX</span>
-          <div><div class="train-file-name">MCQ Assessment (80 Questions)</div><div class="train-file-desc">4-section knowledge test with answers</div></div>
-          <span class="train-dl-arrow">⬇</span>
-        </a>
-        <a class="train-file-row" href="training-docs/sap/RapidAI_SAP_QuickRef.docx" download>
-          <span class="train-file-badge docx">DOCX</span>
-          <div><div class="train-file-name">Quick Reference Book</div><div class="train-file-desc">Compact cheat sheet — T-codes, tables, key rules</div></div>
-          <span class="train-dl-arrow">⬇</span>
-        </a>
-      </div>
-    </div>
-
-    <!-- Supply Chain -->
-    <div class="train-card" id="tc-sc">
-      <div class="train-card-header" onclick="toggleTrainCard('tc-sc')">
-        <div class="train-card-icon sc">📦</div>
-        <div><div class="train-card-title">Supply Chain Management</div><div class="train-card-sub">Procurement · Inventory · WMS · Demand Planning · Lean</div></div>
-        <span class="train-card-chevron">▼</span>
-      </div>
-      <div class="train-card-body">
-        <a class="train-file-row" href="training-docs/supply-chain/RapidAI_SupplyChain_Handbook.docx" download>
-          <span class="train-file-badge docx">DOCX</span>
-          <div><div class="train-file-name">Comprehensive Handbook</div><div class="train-file-desc">50+ page guide from procurement to digital SC</div></div>
-          <span class="train-dl-arrow">⬇</span>
-        </a>
-        <a class="train-file-row" href="training-docs/supply-chain/RapidAI_SupplyChain_Overview.pptx" download>
-          <span class="train-file-badge pptx">PPTX</span>
-          <div><div class="train-file-name">Overview Slide Deck</div><div class="train-file-desc">24-slide presentation for training sessions</div></div>
-          <span class="train-dl-arrow">⬇</span>
-        </a>
-        <a class="train-file-row" href="training-docs/supply-chain/RapidAI_SupplyChain_MCQ_Test.docx" download>
-          <span class="train-file-badge docx">DOCX</span>
-          <div><div class="train-file-name">MCQ Assessment (80 Questions)</div><div class="train-file-desc">4-section knowledge test with answers</div></div>
-          <span class="train-dl-arrow">⬇</span>
-        </a>
-        <a class="train-file-row" href="training-docs/supply-chain/RapidAI_SupplyChain_QuickRef.docx" download>
-          <span class="train-file-badge docx">DOCX</span>
-          <div><div class="train-file-name">Quick Reference Book</div><div class="train-file-desc">Compact cheat sheet — KPIs, formulas, SCOR</div></div>
-          <span class="train-dl-arrow">⬇</span>
-        </a>
-      </div>
-    </div>
-
-  </div>
-</div>
-
 <!-- PROGRAM DOCS -->
 <hr />
 <div class="program-docs-section">
@@ -800,43 +603,25 @@
 
 <script>
   // ─── SUPABASE CONFIG ─────────────────────────────────────────────
-  const SUPABASE_URL  = 'https://mfbisoxplgjquxzrwtny.supabase.co';
-  const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mYmlzb3hwbGdqcXV4enJ3dG55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNjE5NDUsImV4cCI6MjEwNTgzNzk0NX0.PF0P6H3KCC7ur2024OEiKsse0ZbtPy-evSGj27qcmq0';
+  // Replace these two values after creating your free Supabase project
+  // at https://supabase.com → New Project → Settings → API
+  const SUPABASE_URL  = 'YOUR_SUPABASE_URL';   // e.g. https://xxxx.supabase.co
+  const SUPABASE_KEY  = 'YOUR_SUPABASE_ANON_KEY'; // starts with eyJ...
 
   const { createClient } = supabase;
   const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
   // ─── AUTH STATE ──────────────────────────────────────────────────
-  // Listen for Supabase to process the recovery/invite token from the URL hash.
-  // We must NOT clear the hash before Supabase reads it — that's why we use
-  // onAuthStateChange instead of manually parsing window.location.hash.
-  db.auth.onAuthStateChange(async (event, session) => {
-    if (event === 'PASSWORD_RECOVERY') {
-      // Only show set-password gate if the user isn't already in the portal
-      const portalOpen = document.getElementById('portal-content').classList.contains('visible');
-      if (!portalOpen) {
-        document.getElementById('login-gate').classList.add('hidden');
-        document.getElementById('set-password-gate').classList.remove('hidden');
-        window.history.replaceState(null, '', window.location.pathname);
-      }
-    } else if (event === 'USER_UPDATED' && session) {
-      // Password was set successfully — go straight into the portal
-      showPortal(session.user.email);
-    }
-  });
-
   async function checkAuth() {
-    // Normal page load — check if already logged in
     const { data: { user } } = await db.auth.getUser();
     if (user) {
       showPortal(user.email);
     }
-    // Recovery/invite flows are handled by onAuthStateChange above
+    // If not logged in, login gate is already visible (default)
   }
 
   function showPortal(email) {
     document.getElementById('login-gate').classList.add('hidden');
-    document.getElementById('set-password-gate').classList.add('hidden');
     document.getElementById('portal-content').classList.add('visible');
     if (email) {
       document.getElementById('nav-user-email').textContent = email;
@@ -877,50 +662,13 @@
     errBox.classList.add('visible');
   }
 
-  // Allow Enter key to submit login
+  // Allow Enter key to submit
   document.addEventListener('keydown', function(e) {
-    if (e.key !== 'Enter') return;
-    const loginVisible  = !document.getElementById('login-gate').classList.contains('hidden');
-    const setPwdVisible = !document.getElementById('set-password-gate').classList.contains('hidden');
-    if (loginVisible)  signIn();
-    if (setPwdVisible) setPassword();
+    if (e.key === 'Enter') {
+      const gate = document.getElementById('login-gate');
+      if (!gate.classList.contains('hidden')) signIn();
+    }
   });
-
-  // ─── SET PASSWORD (invite / recovery flow) ────────────────────────
-  async function setPassword() {
-    const password = document.getElementById('new-password').value;
-    const confirm  = document.getElementById('confirm-password').value;
-    const btn      = document.getElementById('set-pwd-btn');
-    const btnText  = document.getElementById('set-pwd-btn-text');
-    const errBox   = document.getElementById('set-pwd-error');
-
-    errBox.classList.remove('visible');
-
-    if (password.length < 8) {
-      errBox.textContent = 'Password must be at least 8 characters.';
-      errBox.classList.add('visible');
-      return;
-    }
-    if (password !== confirm) {
-      errBox.textContent = 'Passwords do not match.';
-      errBox.classList.add('visible');
-      return;
-    }
-
-    btn.disabled = true;
-    btnText.textContent = 'Setting password…';
-
-    const { data, error } = await db.auth.updateUser({ password });
-
-    if (error) {
-      btn.disabled = false;
-      btnText.textContent = 'Set Password & Enter Portal';
-      errBox.textContent = error.message;
-      errBox.classList.add('visible');
-    } else {
-      showPortal(data.user.email);
-    }
-  }
 
   // ─── SIGN OUT ────────────────────────────────────────────────────
   async function signOut() {
@@ -942,11 +690,6 @@
     setTimeout(function() { panel.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
   }
 
-
-  // ─── TRAINING CARD TOGGLE ──────────────────────────────────────
-  function toggleTrainCard(id) {
-    document.getElementById(id).classList.toggle('open');
-  }
   // ─── INIT ────────────────────────────────────────────────────────
   checkAuth();
 </script>
