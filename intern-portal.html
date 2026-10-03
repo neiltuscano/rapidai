@@ -34,7 +34,7 @@
       display:flex;align-items:center;justify-content:center;
       padding:24px;
     }
-    #login-gate.hidden{display:none;}
+    #login-gate.hidden,#set-password-gate.hidden{display:none;}
     .login-card{
       width:100%;max-width:400px;
       background:rgba(255,255,255,0.04);
@@ -312,6 +312,7 @@
 
     <div class="login-footer">
       Need help? <a href="mailto:hr@rapidaitechnologies.com">hr@rapidaitechnologies.com</a>
+      &nbsp;·&nbsp; <a href="#" onclick="backToLogin();return false;">Back to login</a>
     </div>
   </div>
 </div>
@@ -800,56 +801,64 @@
 
 <script>
   // ─── SUPABASE CONFIG ─────────────────────────────────────────────
-  const SUPABASE_URL  = 'https://mfbisoxplgjquxzrwtny.supabase.co';
-  const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mYmlzb3hwbGdqcXV4enJ3dG55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNjE5NDUsImV4cCI6MjEwNTgzNzk0NX0.PF0P6H3KCC7ur2024OEiKsse0ZbtPy-evSGj27qcmq0';
+  const SUPABASE_URL = 'https://mfbisoxplgjquxzrwtny.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mYmlzb3hwbGdqcXV4enJ3dG55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNjE5NDUsImV4cCI6MjEwNTgzNzk0NX0.PF0P6H3KCC7ur2024OEiKsse0ZbtPy-evSGj27qcmq0';
 
   const { createClient } = supabase;
   const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // ─── AUTH STATE ──────────────────────────────────────────────────
-  // Listen for Supabase to process the recovery/invite token from the URL hash.
-  // We must NOT clear the hash before Supabase reads it — that's why we use
-  // onAuthStateChange instead of manually parsing window.location.hash.
-  db.auth.onAuthStateChange(async (event, session) => {
-    if (event === 'PASSWORD_RECOVERY') {
-      // Only act on a REAL recovery link — check URL hash has an actual token.
-      // A stale localStorage session can fire PASSWORD_RECOVERY on plain page load
-      // without any token in the URL; we sign out and show normal login instead.
-      const hash = window.location.hash;
-      const hasRealToken = hash.includes('access_token=') || hash.includes('type=recovery');
-      const portalOpen = document.getElementById('portal-content').classList.contains('visible');
-      if (hasRealToken && !portalOpen) {
-        document.getElementById('login-gate').classList.add('hidden');
-        document.getElementById('set-password-gate').classList.remove('hidden');
-        window.history.replaceState(null, '', window.location.pathname);
-      } else if (!hasRealToken && !portalOpen) {
-        // Stale recovery session — sign out and show login
-        await db.auth.signOut();
-        document.getElementById('login-gate').classList.remove('hidden');
-        document.getElementById('set-password-gate').classList.add('hidden');
-      }
-    } else if (event === 'USER_UPDATED' && session) {
-      // Password was set successfully — go straight into the portal
-      showPortal(session.user.email);
-    }
-  });
-
-  async function checkAuth() {
-    // Normal page load — check if already logged in
-    const { data: { user } } = await db.auth.getUser();
-    if (user) {
-      showPortal(user.email);
-    }
-    // Recovery/invite flows are handled by onAuthStateChange above
-  }
-
+  // ─── UI HELPERS ──────────────────────────────────────────────────
   function showPortal(email) {
     document.getElementById('login-gate').classList.add('hidden');
     document.getElementById('set-password-gate').classList.add('hidden');
     document.getElementById('portal-content').classList.add('visible');
-    if (email) {
-      document.getElementById('nav-user-email').textContent = email;
-    }
+    if (email) document.getElementById('nav-user-email').textContent = email;
+  }
+
+  function showLogin() {
+    document.getElementById('login-gate').classList.remove('hidden');
+    document.getElementById('set-password-gate').classList.add('hidden');
+    document.getElementById('portal-content').classList.remove('visible');
+  }
+
+  function showSetPassword() {
+    document.getElementById('login-gate').classList.add('hidden');
+    document.getElementById('set-password-gate').classList.remove('hidden');
+  }
+
+  function showError(msg) {
+    const errBox = document.getElementById('login-error');
+    errBox.textContent = msg;
+    errBox.classList.add('visible');
+  }
+
+  // ─── INIT ────────────────────────────────────────────────────────
+  // Only start the recovery/invite flow if the URL actually contains a token.
+  // This prevents stale localStorage sessions from showing the set-password
+  // screen on every normal page load (the root cause of the "always resets" bug).
+  const _hash = window.location.hash;
+  const _isRecoveryLink = _hash.includes('access_token=') &&
+    (_hash.includes('type=recovery') || _hash.includes('type=invite') || _hash.includes('type=magiclink'));
+
+  if (_isRecoveryLink) {
+    // Real invite/recovery link clicked — Supabase auto-processes the hash token.
+    // Subscribe once, show set-password form when ready, then unsubscribe.
+    const { data: { subscription: _recoverySub } } = db.auth.onAuthStateChange((event, session) => {
+      if ((event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') && session) {
+        showSetPassword();
+        window.history.replaceState(null, '', window.location.pathname);
+        _recoverySub.unsubscribe();
+      }
+    });
+  } else {
+    // Normal page load — check for an existing valid session.
+    (async () => {
+      const { data: { user } } = await db.auth.getUser();
+      if (user) {
+        showPortal(user.email);
+      }
+      // If no session, login-gate is already visible (default state in HTML).
+    })();
   }
 
   // ─── SIGN IN ─────────────────────────────────────────────────────
@@ -860,62 +869,44 @@
     const btnText  = document.getElementById('login-btn-text');
     const errBox   = document.getElementById('login-error');
 
-    if (!email || !password) {
-      showError('Please enter your email and password.');
-      return;
-    }
+    if (!email || !password) { showError('Please enter your email and password.'); return; }
 
     btn.disabled = true;
     btnText.textContent = 'Signing in…';
     errBox.classList.remove('visible');
 
-    // 10-second timeout so the button never stays stuck if Supabase is unavailable
-    const authPromise = db.auth.signInWithPassword({ email, password });
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('timeout')), 10000)
-    );
+    // 10-second timeout — prevents button from staying stuck if Supabase is slow to wake
     let data, error;
     try {
+      const authPromise    = db.auth.signInWithPassword({ email, password });
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('timeout')), 10000)
+      );
       ({ data, error } = await Promise.race([authPromise, timeoutPromise]));
     } catch (err) {
-      data = null;
+      data  = null;
       error = { message: err.message === 'timeout' ? 'timeout' : err.message };
     }
 
+    btn.disabled = false;
+    btnText.textContent = 'Sign In to Portal';
+
     if (error) {
-      btn.disabled = false;
-      btnText.textContent = 'Sign In to Portal';
       if (error.message === 'timeout') {
-        showError('Connection timed out — the server may be waking up. Please try again in 30 seconds.');
+        showError('Connection timed out — the server may be waking up. Wait 30 seconds and try again.');
       } else {
-        showError('Incorrect email or password. Contact hr@rapidaitechnologies.com if you need help.');
+        showError('Incorrect email or password. Contact hr@rapidaitechnologies.com for help.');
       }
     } else {
       showPortal(data.user.email);
     }
   }
 
-  function showError(msg) {
-    const errBox = document.getElementById('login-error');
-    errBox.textContent = msg;
-    errBox.classList.add('visible');
-  }
-
-  // Escape hatch: let intern return to login if stuck on set-password screen
-  async function backToLogin() {
-    await db.auth.signOut();
-    document.getElementById('set-password-gate').classList.add('hidden');
-    document.getElementById('login-gate').classList.remove('hidden');
-    window.history.replaceState(null, '', window.location.pathname);
-  }
-
-  // Allow Enter key to submit login
+  // Allow Enter key in login form
   document.addEventListener('keydown', function(e) {
     if (e.key !== 'Enter') return;
-    const loginVisible  = !document.getElementById('login-gate').classList.contains('hidden');
-    const setPwdVisible = !document.getElementById('set-password-gate').classList.contains('hidden');
-    if (loginVisible)  signIn();
-    if (setPwdVisible) setPassword();
+    if (!document.getElementById('login-gate').classList.contains('hidden'))          signIn();
+    if (!document.getElementById('set-password-gate').classList.contains('hidden'))   setPassword();
   });
 
   // ─── SET PASSWORD (invite / recovery flow) ────────────────────────
@@ -927,23 +918,13 @@
     const errBox   = document.getElementById('set-pwd-error');
 
     errBox.classList.remove('visible');
-
-    if (password.length < 8) {
-      errBox.textContent = 'Password must be at least 8 characters.';
-      errBox.classList.add('visible');
-      return;
-    }
-    if (password !== confirm) {
-      errBox.textContent = 'Passwords do not match.';
-      errBox.classList.add('visible');
-      return;
-    }
+    if (password.length < 8) { errBox.textContent = 'Password must be at least 8 characters.'; errBox.classList.add('visible'); return; }
+    if (password !== confirm) { errBox.textContent = 'Passwords do not match.'; errBox.classList.add('visible'); return; }
 
     btn.disabled = true;
     btnText.textContent = 'Setting password…';
 
     const { data, error } = await db.auth.updateUser({ password });
-
     if (error) {
       btn.disabled = false;
       btnText.textContent = 'Set Password & Enter Portal';
@@ -954,14 +935,20 @@
     }
   }
 
+  // Back-to-login escape hatch from set-password screen
+  async function backToLogin() {
+    await db.auth.signOut();
+    showLogin();
+    window.history.replaceState(null, '', window.location.pathname);
+  }
+
   // ─── SIGN OUT ────────────────────────────────────────────────────
   async function signOut() {
     await db.auth.signOut();
-    document.getElementById('portal-content').classList.remove('visible');
-    document.getElementById('login-gate').classList.remove('hidden');
-    document.getElementById('login-email').value = '';
+    document.getElementById('login-email').value    = '';
     document.getElementById('login-password').value = '';
     document.getElementById('nav-user-email').textContent = '';
+    showLogin();
   }
 
   // ─── TRACK SELECTOR ──────────────────────────────────────────────
@@ -974,13 +961,10 @@
     setTimeout(function() { panel.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
   }
 
-
-  // ─── TRAINING CARD TOGGLE ──────────────────────────────────────
+  // ─── TRAINING CARD TOGGLE ────────────────────────────────────────
   function toggleTrainCard(id) {
     document.getElementById(id).classList.toggle('open');
   }
-  // ─── INIT ────────────────────────────────────────────────────────
-  checkAuth();
 </script>
 </body>
 </html>
